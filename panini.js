@@ -128,6 +128,7 @@ let activeFilter = "open";
 let currentGroup = null;
 let remoteRef = null;
 let suppressRemoteWrite = false;
+let remoteSetDoc = null;
 let setServerTimestamp = null;
 
 function groupId(group) {
@@ -160,7 +161,7 @@ async function syncRemote() {
   if (!remoteRef || suppressRemoteWrite) return;
   setSyncStatus("Wird synchronisiert...");
   try {
-    await setDoc(remoteRef, {
+    await remoteSetDoc(remoteRef, {
       done: [...done],
       updatedAt: setServerTimestamp()
     }, { merge: true });
@@ -243,28 +244,39 @@ function openGroup(group, kind) {
 function renderStickers() {
   stickerGrid.innerHTML = "";
   visibleNumbers(currentGroup).forEach((number) => {
-    const item = document.createElement("article");
+    const item = document.createElement("button");
     item.className = "sticker";
+    item.type = "button";
     item.innerHTML = `
       <div class="sticker-face">
         <strong class="sticker-number">${number}</strong>
+        <span class="sticker-check" aria-hidden="true">✓</span>
       </div>
-      <button class="have-button" type="button">Hab ich jetzt</button>
     `;
-    item.querySelector("button").addEventListener("click", () => markSticker(number));
+    if (activeFilter === "done") {
+      item.classList.add("is-done");
+      item.disabled = true;
+    } else {
+      item.setAttribute("aria-label", currentGroup.name + " Sticker " + number + " als vorhanden markieren");
+      item.addEventListener("click", () => markSticker(number, item));
+    }
     stickerGrid.appendChild(item);
   });
 }
 
-function markSticker(number) {
-  done.add(stickerId(currentGroup, number));
-  save();
-  render();
-  renderStickers();
-  syncRemote();
-  if (visibleNumbers(currentGroup).length === 0) {
-    stickerDialog.close();
-  }
+function markSticker(number, item) {
+  item.disabled = true;
+  item.classList.add("is-claiming");
+  window.setTimeout(() => {
+    done.add(stickerId(currentGroup, number));
+    save();
+    render();
+    renderStickers();
+    syncRemote();
+    if (visibleNumbers(currentGroup).length === 0) {
+      stickerDialog.close();
+    }
+  }, 420);
 }
 
 function setFilter(filter) {
@@ -295,7 +307,8 @@ async function startFirebaseSync() {
     const firebaseApp = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
     const firestore = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
     const { initializeApp } = firebaseApp;
-    const { getFirestore, doc, onSnapshot, serverTimestamp } = firestore;
+    const { getFirestore, doc, onSnapshot, serverTimestamp, setDoc } = firestore;
+    remoteSetDoc = setDoc;
     setServerTimestamp = serverTimestamp;
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);

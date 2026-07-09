@@ -316,14 +316,21 @@ main {
 .sticker {
   min-height: 146px;
   display: grid;
-  grid-template-rows: 1fr auto;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
+  padding: 0;
   background: #fff;
+  box-shadow: 0 8px 18px rgba(24, 33, 47, .08);
+  transition: opacity .22s ease, transform .22s ease, border-color .22s ease;
+}
+
+.sticker:disabled {
+  cursor: default;
 }
 
 .sticker-face {
+  position: relative;
   display: grid;
   place-items: center;
   padding: 10px;
@@ -347,15 +354,49 @@ main {
   text-align: center;
   line-height: 1.05;
   box-shadow: 0 8px 16px rgba(24, 33, 47, .12);
+  transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
 }
 
-.have-button {
-  min-height: 42px;
-  border: 0;
-  border-top: 1px solid var(--line);
+.sticker-check {
+  position: absolute;
+  inset: auto 12px 12px auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
   color: #fff;
   background: var(--green);
+  font-size: 1.35rem;
   font-weight: 900;
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.sticker.is-claiming {
+  border-color: #142033;
+  transform: translateX(18px);
+  opacity: 0;
+}
+
+.sticker.is-claiming .sticker-face,
+.sticker.is-done .sticker-face {
+  background: #142033;
+}
+
+.sticker.is-claiming .sticker-number,
+.sticker.is-done .sticker-number {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .55);
+  background: rgba(255, 255, 255, .08);
+  transform: scale(.96);
+}
+
+.sticker.is-claiming .sticker-check,
+.sticker.is-done .sticker-check {
+  opacity: 1;
+  transform: scale(1);
 }
 
 @media (max-width: 760px) {
