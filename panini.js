@@ -166,7 +166,7 @@ async function syncRemote() {
     }, { merge: true });
     setSyncStatus("Online synchronisiert");
   } catch (error) {
-    setSyncStatus("Offline: lokal gespeichert");
+    setSyncStatus("Nicht synchronisiert: " + (error.code || error.message || "lokal gespeichert"));
   }
 }
 
@@ -321,11 +321,11 @@ async function startFirebaseSync() {
       } else {
         setSyncStatus("Online bereit");
       }
-    }, () => {
-      setSyncStatus("Offline: lokal gespeichert");
+    }, (error) => {
+      setSyncStatus("Nicht synchronisiert: " + (error.code || error.message || "lokal gespeichert"));
     });
   } catch (error) {
-    setSyncStatus("Firebase noch nicht eingerichtet");
+    setSyncStatus("Firebase-Fehler: " + (error.code || error.message || "Einrichtung prüfen"));
   }
 }
 
