@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Panini Fehlliste</title>
   <meta name="theme-color" content="#0d3b66">
+  <link rel="icon" type="image/png" href="app-icon.png">
+  <link rel="apple-touch-icon" href="app-icon.png">
+  <link rel="manifest" href="panini.webmanifest">
   <link rel="stylesheet" href="panini.css">
 </head>
 <body>
@@ -26,6 +29,7 @@
         <strong id="doneTotal">0</strong>
         <span>schon erledigt</span>
       </div>
+      <p id="syncStatus" class="sync-status">Lokal gespeichert</p>
     </section>
 
     <section class="toolbar" aria-label="Suche und Filter">
@@ -62,6 +66,6 @@
     <div id="stickerGrid" class="sticker-grid"></div>
   </dialog>
 
-  <script src="panini.js"></script>
+  <script type="module" src="panini.js"></script>
 </body>
 </html>

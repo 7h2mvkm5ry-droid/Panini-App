@@ -1,3 +1,5 @@
+import { firebaseConfig, firebaseListPath } from "./firebase-config.js";
+
 const DATA = [
   { name: "Ägypten", flag: "🇪🇬", numbers: ["2", "6", "8", "9", "13", "14", "15", "17", "19", "20"] },
   { name: "Algerien", flag: "🇩🇿", numbers: ["3", "4", "8", "11", "12", "15", "19"] },
@@ -112,6 +114,7 @@ const teamList = document.querySelector("#teamList");
 const specialList = document.querySelector("#specialList");
 const missingTotal = document.querySelector("#missingTotal");
 const doneTotal = document.querySelector("#doneTotal");
+const syncStatus = document.querySelector("#syncStatus");
 const searchInput = document.querySelector("#searchInput");
 const showOpenBtn = document.querySelector("#showOpenBtn");
 const showDoneBtn = document.querySelector("#showDoneBtn");
@@ -123,6 +126,9 @@ const dialogName = document.querySelector("#dialogName");
 const stickerGrid = document.querySelector("#stickerGrid");
 let activeFilter = "open";
 let currentGroup = null;
+let remoteRef = null;
+let suppressRemoteWrite = false;
+let setServerTimestamp = null;
 
 function groupId(group) {
   return group.name.toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -140,6 +146,28 @@ function flagMarkup(group) {
 
 function save() {
   localStorage.setItem(storageKey, JSON.stringify([...done]));
+}
+
+function isFirebaseConfigured() {
+  return Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
+}
+
+function setSyncStatus(message) {
+  syncStatus.textContent = message;
+}
+
+async function syncRemote() {
+  if (!remoteRef || suppressRemoteWrite) return;
+  setSyncStatus("Wird synchronisiert...");
+  try {
+    await setDoc(remoteRef, {
+      done: [...done],
+      updatedAt: setServerTimestamp()
+    }, { merge: true });
+    setSyncStatus("Online synchronisiert");
+  } catch (error) {
+    setSyncStatus("Offline: lokal gespeichert");
+  }
 }
 
 function missingNumbers(group) {
@@ -233,6 +261,7 @@ function markSticker(number) {
   save();
   render();
   renderStickers();
+  syncRemote();
   if (visibleNumbers(currentGroup).length === 0) {
     stickerDialog.close();
   }
@@ -253,6 +282,52 @@ resetBtn.addEventListener("click", () => {
   done.clear();
   save();
   render();
+  syncRemote();
 });
 
+async function startFirebaseSync() {
+  if (!isFirebaseConfigured()) {
+    setSyncStatus("Lokal gespeichert - Firebase noch nicht eingerichtet");
+    return;
+  }
+
+  try {
+    const firebaseApp = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+    const firestore = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+    const { initializeApp } = firebaseApp;
+    const { getFirestore, doc, onSnapshot, serverTimestamp } = firestore;
+    setServerTimestamp = serverTimestamp;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    remoteRef = doc(db, firebaseListPath.collection, firebaseListPath.document);
+    setSyncStatus("Verbindung wird hergestellt...");
+
+    onSnapshot(remoteRef, (snapshot) => {
+      const remoteDone = snapshot.exists() ? snapshot.data().done : null;
+      if (Array.isArray(remoteDone)) {
+        suppressRemoteWrite = true;
+        done.clear();
+        remoteDone.forEach((id) => done.add(id));
+        save();
+        render();
+        if (currentGroup && stickerDialog.open) renderStickers();
+        suppressRemoteWrite = false;
+        setSyncStatus("Online synchronisiert");
+        return;
+      }
+
+      if (done.size > 0) {
+        syncRemote();
+      } else {
+        setSyncStatus("Online bereit");
+      }
+    }, () => {
+      setSyncStatus("Offline: lokal gespeichert");
+    });
+  } catch (error) {
+    setSyncStatus("Firebase noch nicht eingerichtet");
+  }
+}
+
 render();
+startFirebaseSync();
