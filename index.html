@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panini Fehlliste</title>
+  <meta name="theme-color" content="#0d3b66">
+  <link rel="stylesheet" href="panini.css">
+</head>
+<body>
+  <header class="app-head">
+    <div>
+      <span>Panini Fehlliste</span>
+      <h1>Fehlende Sticker</h1>
+    </div>
+    <button id="resetBtn" class="icon-button" type="button" title="Liste zurücksetzen" aria-label="Liste zurücksetzen">↺</button>
+  </header>
+
+  <main>
+    <section class="summary" aria-live="polite">
+      <div>
+        <strong id="missingTotal">0</strong>
+        <span>fehlen noch</span>
+      </div>
+      <div>
+        <strong id="doneTotal">0</strong>
+        <span>schon erledigt</span>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Suche und Filter">
+      <label>
+        <span>Suche</span>
+        <input id="searchInput" type="search" placeholder="Land oder Nummer">
+      </label>
+      <button id="showOpenBtn" class="filter-button is-active" type="button">Offene</button>
+      <button id="showDoneBtn" class="filter-button" type="button">Erledigte</button>
+    </section>
+
+    <section class="content">
+      <h2>Länder</h2>
+      <div id="teamList" class="team-list"></div>
+    </section>
+
+    <section class="content">
+      <h2>Sonderseiten</h2>
+      <div id="specialList" class="team-list"></div>
+    </section>
+  </main>
+
+  <dialog id="stickerDialog" class="sticker-dialog">
+    <form method="dialog">
+      <button class="close-button" aria-label="Schließen">×</button>
+    </form>
+    <div class="dialog-title">
+      <div id="dialogFlag" class="dialog-flag"></div>
+      <div>
+        <p id="dialogKind"></p>
+        <h2 id="dialogName"></h2>
+      </div>
+    </div>
+    <div id="stickerGrid" class="sticker-grid"></div>
+  </dialog>
+
+  <script src="panini.js"></script>
+</body>
+</html>
