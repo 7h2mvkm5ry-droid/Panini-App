@@ -2,7 +2,7 @@ import { firebaseConfig, firebaseListPath } from "./firebase-config.js";
 
 const DATA = [
   { name: "Ägypten", flag: "🇪🇬", numbers: ["2", "6", "8", "9", "13", "14", "15", "17", "19", "20"] },
-  { name: "Algerien", flag: "🇩🇿", numbers: ["3", "4", "8", "11", "12", "15", "19"] },
+  { name: "Algerien", flag: "🇩🇿", numbers: ["3", "4", "8", "10", "11", "12", "15", "19"] },
   { name: "Argentinien", flag: "🇦🇷", numbers: ["5", "6", "9", "10", "11", "12", "13", "19"] },
   { name: "Australien", flag: "🇦🇺", numbers: ["1", "2", "4", "7", "9", "10", "11", "12", "14", "16", "18", "20"] },
   { name: "Belgien", flag: "🇧🇪", numbers: ["2", "3", "6", "9", "10", "11", "12", "14", "15", "18", "20"] },
