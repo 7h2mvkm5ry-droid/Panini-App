@@ -130,6 +130,7 @@ let remoteRef = null;
 let suppressRemoteWrite = false;
 let remoteSetDoc = null;
 let setServerTimestamp = null;
+let selectedStickerId = null;
 
 function groupId(group) {
   return group.name.toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -244,9 +245,12 @@ function openGroup(group, kind) {
 function renderStickers() {
   stickerGrid.innerHTML = "";
   visibleNumbers(currentGroup).forEach((number) => {
+    const id = stickerId(currentGroup, number);
     const item = document.createElement("button");
     item.className = "sticker";
     item.type = "button";
+    item.dataset.id = id;
+    item.dataset.number = number;
     item.innerHTML = `
       <div class="sticker-face">
         <strong class="sticker-number">${number}</strong>
@@ -257,18 +261,71 @@ function renderStickers() {
       item.classList.add("is-done");
       item.disabled = true;
     } else {
-      item.setAttribute("aria-label", currentGroup.name + " Sticker " + number + " als vorhanden markieren");
-      item.addEventListener("click", () => markSticker(number, item));
+      if (selectedStickerId === id) item.classList.add("is-selected");
+      item.setAttribute("aria-label", currentGroup.name + " Sticker " + number + " vormerken. Danach zur Seite wischen.");
+      attachStickerGestures(item, number, id);
     }
     stickerGrid.appendChild(item);
   });
 }
 
-function markSticker(number, item) {
+function attachStickerGestures(item, number, id) {
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let pointerActive = false;
+  let didDrag = false;
+
+  item.addEventListener("pointerdown", (event) => {
+    if (item.classList.contains("is-claiming")) return;
+    pointerActive = true;
+    didDrag = false;
+    startX = event.clientX;
+    startY = event.clientY;
+    currentX = 0;
+    item.setPointerCapture(event.pointerId);
+  });
+
+  item.addEventListener("pointermove", (event) => {
+    if (!pointerActive || selectedStickerId !== id) return;
+    const deltaX = event.clientX - startX;
+    const deltaY = event.clientY - startY;
+    if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
+    if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+    didDrag = true;
+    currentX = Math.max(-130, Math.min(130, deltaX));
+    item.style.transform = "translateX(" + currentX + "px)";
+  });
+
+  item.addEventListener("pointerup", () => {
+    if (!pointerActive) return;
+    pointerActive = false;
+    if (selectedStickerId === id && Math.abs(currentX) > 72) {
+      confirmSticker(number, item);
+      return;
+    }
+    item.style.transform = "";
+    if (!didDrag) toggleStickerSelection(id);
+  });
+
+  item.addEventListener("pointercancel", () => {
+    pointerActive = false;
+    item.style.transform = "";
+  });
+}
+
+function toggleStickerSelection(id) {
+  selectedStickerId = selectedStickerId === id ? null : id;
+  renderStickers();
+}
+
+function confirmSticker(number, item) {
   item.disabled = true;
   item.classList.add("is-claiming");
+  item.style.transform = "";
   window.setTimeout(() => {
     done.add(stickerId(currentGroup, number));
+    selectedStickerId = null;
     save();
     render();
     renderStickers();

@@ -322,6 +322,8 @@ main {
   padding: 0;
   background: #fff;
   box-shadow: 0 8px 18px rgba(24, 33, 47, .08);
+  touch-action: pan-y;
+  user-select: none;
   transition: opacity .22s ease, transform .22s ease, border-color .22s ease;
 }
 
@@ -374,17 +376,23 @@ main {
   transition: opacity .18s ease, transform .18s ease;
 }
 
+.sticker.is-selected,
 .sticker.is-claiming {
   border-color: #142033;
+}
+
+.sticker.is-claiming {
   transform: translateX(18px);
   opacity: 0;
 }
 
+.sticker.is-selected .sticker-face,
 .sticker.is-claiming .sticker-face,
 .sticker.is-done .sticker-face {
   background: #142033;
 }
 
+.sticker.is-selected .sticker-number,
 .sticker.is-claiming .sticker-number,
 .sticker.is-done .sticker-number {
   color: #fff;
@@ -393,6 +401,7 @@ main {
   transform: scale(.96);
 }
 
+.sticker.is-selected .sticker-check,
 .sticker.is-claiming .sticker-check,
 .sticker.is-done .sticker-check {
   opacity: 1;
